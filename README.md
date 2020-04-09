@@ -11,4 +11,4 @@ Compute CPA and TCPA
 Comments and code contributions most welcome. Please make contact through github email in the first instance.
 
 # See also
-[https://github.com/jamesdalby/jamais](jamais): A flutter app to show nearby shipping on an Android or iOS device.
+[jamais](https://github.com/jamesdalby/jamais): A flutter app to show nearby shipping on an Android or iOS device.
