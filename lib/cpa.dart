@@ -19,11 +19,15 @@ class PCS {
   /// speed over the ground, knots
   final double sog;
 
+  double _ns;
+
   /// northerly speed in degrees per hour, primarily for internal use
-  final double ns;
+  double get ns => _ns;
+
+  double _es;
 
   /// easterly speed in degrees per hour, primarily for internal use
-  final double es;
+  double get es => _ns;
 
   /// Position, Course and Speed
   ///
@@ -32,16 +36,18 @@ class PCS {
   /// [cog] course over the ground, degrees from North
   ///
   /// [sog] speed over the ground, kn
-  PCS(this.lat, this.lon, this.cog, this.sog)
-      :
-        ns = sog / 60 * cos(_deg2rad(cog)),
-        es = sog / 60 * sin(_deg2rad(cog)) / cos(_deg2rad(lat)).abs();
+  PCS(this.lat, this.lon, this.cog, this.sog) {
+    if (cog != null) {
+      _ns = sog / 60 * cos(_deg2rad(cog));
+      _es = sog / 60 * sin(_deg2rad(cog)) / cos(_deg2rad(lat)).abs();
+    }
+  }
 
   /// Location as [lat,lon] after [time] in hours
   List<double> at(double time) {
     return [
-      lon + es * time, // es and ns are in (equator) degrees/hour
-      lat + ns * time
+      lon + _es * time, // es and ns are in (equator) degrees/hour
+      lat + _ns * time
     ];
   }
 
@@ -79,7 +85,10 @@ double _dotProduct(List<double> a, List<double> b) {
 /// Divergent courses will return negative
 ///
 /// Parallel courses will return NaN
+///
+/// If our COG is null, this returns null.
 double tcpa(final PCS us, final PCS them) {
+  if (us.cog == null) { return null; }
   var dv = [ us.es - them.es, us.ns - them.ns];
   double dv2 = _dotProduct(dv, dv);
   if (dv2 == 0) { return 0; }
@@ -90,12 +99,18 @@ double tcpa(final PCS us, final PCS them) {
 ///
 /// If [time] given, this just computes distance at [time]
 /// but if it's null it'll compute tcpa(us,them) and use that time
+///
+/// If our COG is null, this returns null
 double cpa(final PCS us, final PCS them, [double time]) {
   return distance(us, them, time ?? tcpa(us, them));
 }
 
 /// Distance in nm between [us] & [them], [time] hours in the future
+/// If our COG is null, then this returns null
 double distance(final PCS us, final PCS them, [final double time = 0]) {
+  if (us.cog == null) {
+    return null;
+  }
   var ut = us.at(time);
   var tt = them.at(time);
   var dx = ut[0] - tt[0];
