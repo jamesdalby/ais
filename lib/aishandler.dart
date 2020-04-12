@@ -19,21 +19,27 @@ import 'package:nmea/nmea.dart';
 abstract class AISHandler {
   String _lastMsg;
   String _payload = '';
-  final String host;
-  final int port;
+  /*final String host;
+  final int port;*/
 
   final NMEAReader _nmea;
 
   /// Create a handler reading from host:port
-  AISHandler(this.host, this.port) : _nmea = NMEAReader(host, port);
+  AISHandler(String host, int port) : _nmea = NMEASocketReader(host, port);
+  AISHandler.using(final NMEAReader this._nmea);
+
+  // switch source/restart??
+
 
   // Start running
   void run() => _nmea.process(_handleNMEA);
 
   /// Change the host and port number; will disconnect and reconnect to a new source.
   void setSource(final String host, final int port) {
-    _nmea.hostname = host;
-    _nmea.port = port;
+    if (_nmea is NMEASocketReader) {
+      (_nmea as NMEASocketReader).hostname = host;
+      (_nmea as NMEASocketReader).port = port;
+    }
   }
 
   // The underlying NMEA reader
@@ -72,6 +78,9 @@ abstract class AISHandler {
   /// If no message has been received, or this MMSI is unknown, then returns null
   AIS getMostRecentMessage(final int mmsi, final int msgType) => _static[mmsi]??[msgType];
 
+  // Most recent messages of each type for given mmsi
+  Map<int, AIS> getMostRecentMessages(final int mmsi) => Map.unmodifiable(_static[mmsi]);
+
   // stash the message by MMSI and Type
   void _stash(final int mmsi, final int type, final AIS ais) {
     _static.putIfAbsent(mmsi, ()=>new Map<int,AIS>())[type] = ais;
@@ -80,7 +89,7 @@ abstract class AISHandler {
   // receiver for NMEA messges
   void _handleNMEA(var msg) {
     if (msg is RMC) {
-      _us = new PCS(msg.position.lat, msg.position.lng, msg.trackMadeGood??0, msg.sog);
+      _us = new PCS(msg.position.lat, msg.position.lng, msg.trackMadeGood, msg.sog);
       // print('   '+_us.toString());
       we(_us);
     }

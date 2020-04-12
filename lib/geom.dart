@@ -22,11 +22,14 @@ double deg(radians) => radians*180/pi;
 
 /// Initial bearing between a&b
 double bearing(final double alat, final double alon, final double blat, final double blon) {
-  var ar = [ rad(alat), rad(alon) ];
-  var br = [ rad(blat), rad(blon) ];
+  double ar = rad(alat);
+  double br = rad(blat);
 
-  var y = sin(br[1] - ar[1]) * cos(br[0]);
-  var x = cos(ar[0]) * sin(br[0]) -
-      sin(ar[0]) * cos(br[0]) * cos(br[1] - ar[1]);
+  // Formula:	θ = atan2( sin Δλ ⋅ cos φ2 , cos φ1 ⋅ sin φ2 − sin φ1 ⋅ cos φ2 ⋅ cos Δλ )
+  // where	φ1,λ1 is the start point, φ2,λ2 the end point (Δλ is the difference in longitude)
+  var dlonr = rad(blon-alon);
+  var y = sin(dlonr) * cos(br);
+  var x = cos(ar) * sin(br) -
+      sin(ar) * cos(br) * cos(dlonr);
   return (360 + deg(atan2(y, x))) % 360;
 }

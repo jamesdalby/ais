@@ -1,6 +1,7 @@
 /// Closest point of approach, distance and time
 import 'dart:math';
 import 'aisdecode.dart';
+import 'geom.dart';
 
 /// Representation of Position, Course & Speed
 ///
@@ -55,6 +56,16 @@ class PCS {
   @override String toString() {
     return '${_latLon()} ${cog.toInt()}°@${sog.toStringAsFixed(1)}kn';
   }
+
+  /// bearing in degrees from North to them
+  double bearingTo(final PCS them) {
+    return bearing(lat, lon, them.lat, them.lon);
+  }
+
+  // distance from us to them in nm
+  double distanceTo(final PCS them) {
+    return distance(this, them);
+  }
 }
 
 double _dotProduct(List<double> a, List<double> b) {
@@ -92,3 +103,5 @@ double distance(final PCS us, final PCS them, [final double time = 0]) {
   // dx, dy conceptually in degrees, so convert to nm (*60)
   return sqrt(dx * dx + dy * dy) * 60;
 }
+
+
