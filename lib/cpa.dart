@@ -13,6 +13,9 @@ class PCS {
   /// longitude, degrees
   final double lon;
 
+  // Lat & Long in nice format
+  String get latLon => _latLon();
+
   /// course over the ground, degrees from North
   final double cog;
 
@@ -55,8 +58,7 @@ class PCS {
 
   String _latLon() {
     // dms accepts minutes, so *60
-    return "(${dms(lat * 60, 'N', 'S', null)}, ${dms(
-        lon * 60, 'E', 'W', null)})";
+    return "${dms(lat * 60, 'N', 'S', null)} ${dms(lon * 60, 'E', 'W', null)}";
   }
 
   @override String toString() {
@@ -105,7 +107,8 @@ double cpa(final PCS us, final PCS them, [double time]) {
   return distance(us, them, time ?? tcpa(us, them));
 }
 
-/// Distance in nm between [us] & [them], [time] hours in the future
+/// Distance in nm between [us] & [them], [time] hours in the future.
+///
 /// If our COG is null, then this returns null
 double distance(final PCS us, final PCS them, [final double time = 0]) {
   if (us.cog == null) {
