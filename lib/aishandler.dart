@@ -26,7 +26,7 @@ abstract class AISHandler {
 
   /// Create a handler reading from host:port
   AISHandler(String host, int port) : _nmea = NMEASocketReader(host, port);
-  AISHandler.using(final NMEAReader this._nmea);
+  AISHandler.using(this._nmea);
 
   // switch source/restart??
 

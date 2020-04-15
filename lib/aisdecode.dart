@@ -187,7 +187,7 @@ class CNB extends AIS {
 ///
 /// [dp] is the number of decimal places or minutes to be returned
 ///
-String dms(double v, final String p, final String n, [final double na=null, final int dp=1]) {
+String dms(double v, final String p, final String n, [final double na, final int dp=1]) {
   if (v == na) { return "n/a"; }
   String pn = p;
   if (v < 0) {
