@@ -12,7 +12,7 @@ import 'package:nmea/nmea.dart';
 ///
 /// `they(us, them, mmsi)` will be invoked any time a (complete) VDM sentence is received.
 ///
-/// This will attempt to reconnect per `NMEA.process(host, port, handleNMEA)` if a connection is dropped
+/// This will attempt to reconnect if a connection is dropped see [NMEASocketReader] for details.
 ///
 /// This class maintains a (non-persistent) cache of the most recent message of each type received, keyed by MMSI
 /// useful for doing things like name lookup and drilldown to full AIS data should you need to.

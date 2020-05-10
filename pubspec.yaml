@@ -11,7 +11,8 @@ dependencies:
   flutter:
     sdk: flutter
   nmea:
-    path: ../nmea
+    git:
+      url: https://github.com/jamesdalby/nmea.git
 
 dev_dependencies:
   flutter_test:
