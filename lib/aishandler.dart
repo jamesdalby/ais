@@ -94,8 +94,7 @@ abstract class AISHandler {
       we(_us);
     }
     if (msg is Pos) {
-      // TODO: Consider caching pos & course & speed,and then invoking us on these?  RMC is probably the exact same thing, I suspect.
-
+      // Consider caching pos & course & speed,and then invoking us on these?  RMC is probably the exact same thing, I suspect.
       // print(msg.runtimeType.toString() +' '+ dms(msg.lat*60, 'N','S',null, 4) +' '+ dms(msg.lng*60, 'E','W',null,4) );
     }
     if (msg is VTG) {

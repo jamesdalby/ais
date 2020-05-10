@@ -228,7 +228,7 @@ class Type5 extends AIS {
   final int toPort;
   final int toStarboard;
   final String epfd;
-  DateTime get eta => null; // TODO
+  DateTime get eta => _eta(month, day, hour, minute);
   final int month, day, hour, minute;
   final double draught;
   final String	destination;
@@ -263,6 +263,15 @@ class Type5 extends AIS {
   epfd: $epfd, month: $month, day: $day, hour: $hour, minute: $minute, 
   draught: $draught, destination: $destination, dte: $dte
   }''';
+
+  DateTime _eta(int month, int day, int hour, int minute) {
+    DateTime now = DateTime.now();
+    DateTime ret = DateTime.utc(now.year, month, day, hour, minute);
+    if (ret.compareTo(now) < 0) {
+      ret = DateTime.utc(now.year+1, month, day, hour, minute);
+    }
+    return ret;
+  }
 }
 
 class Type18 extends AIS {
