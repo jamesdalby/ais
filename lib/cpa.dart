@@ -43,11 +43,13 @@ class PCS {
     if (cog != null) {
       _ns = sog / 60 * cos(_deg2rad(cog));
       _es = sog / 60 * sin(_deg2rad(cog)) / cos(_deg2rad(lat)).abs();
+    } else {
+      _ns = _es = 0;
     }
   }
 
   /// Location as [lat,lon] after [time] in hours
-  List<double> at(double time) {
+  List<double> at(final double time) {
     return [
       lon + _es * time, // es and ns are in (equator) degrees/hour
       lat + _ns * time

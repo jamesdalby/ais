@@ -1,5 +1,5 @@
-import 'package:aisdecode/aishandler.dart';
-import 'package:aisdecode/cpa.dart';
+import 'package:ais/aishandler.dart';
+import 'package:ais/cpa.dart';
 
 int main(args) {
   new AISTest(
