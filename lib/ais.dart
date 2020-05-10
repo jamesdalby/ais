@@ -1,4 +1,4 @@
-library aisdecode;
+library ais;
 
 export 'aisdecode.dart';
 export 'aishandler.dart';
