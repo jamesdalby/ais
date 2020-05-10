@@ -1,3 +1,5 @@
+import 'package:flutter/cupertino.dart';
+
 import 'aisdecode.dart';
 import 'cpa.dart';
 import 'package:nmea/nmea.dart';
@@ -72,6 +74,11 @@ abstract class AISHandler {
   /// int this basic implementation, so you will only get non-null if a message of that
   /// type has already been received during the current lifecycle of this class.
   String name(final int mmsi) => _names[mmsi];
+
+  /// Invoked when a message arrives that associates MMSI with a name
+  /// Useful to override if you want to track this (e.g to provide persistence capability)
+  @mustCallSuper
+  void set(final int mmsi, String name) => _names[mmsi] = name;
 
   /// Most recent message of given [type] from [mmsi]
   ///
