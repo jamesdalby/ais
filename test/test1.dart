@@ -17,7 +17,7 @@ class AISTest extends AISHandler {
   void they(PCS us, PCS them, int mmsi) {
     double t = tcpa(us, them);
     double c = cpa(us, them, t);
-    String ship = name(mmsi) ?? mmsi.toString();
+    String ship = mmsi.toString();
     print(
         "$us -> $them\t"
             "$ship"

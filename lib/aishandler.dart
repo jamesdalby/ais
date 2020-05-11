@@ -63,7 +63,7 @@ abstract class AISHandler {
   PCS _us;
 
   // Map of MMSI to ship name
-  Map<int,String> _names = {};
+  // Map<int,String> _names = {};
 
   // Map of MMSI to Type to most recently received VDM
   Map<int,Map<int,AIS>> _static = Map();
@@ -73,12 +73,12 @@ abstract class AISHandler {
   /// This is derived from Type5 and Type24 messages, and is not persistent
   /// int this basic implementation, so you will only get non-null if a message of that
   /// type has already been received during the current lifecycle of this class.
-  String name(final int mmsi) => _names[mmsi];
+  // String name(final int mmsi) => _names[mmsi];
 
   /// Invoked when a message arrives that associates MMSI with a name
   /// Useful to override if you want to track this (e.g to provide persistence capability)
-  @mustCallSuper
-  void set(final int mmsi, String name) => _names[mmsi] = name;
+  // @mustCallSuper
+  // void set(final int mmsi, String name) => _names[mmsi] = name;
 
   /// Most recent message of given [type] from [mmsi]
   ///
@@ -119,11 +119,11 @@ abstract class AISHandler {
         final AIS ais = AIS.from(_payload);
 
         if (ais is Type5) {
-          _names[ais.mmsi] = ais.shipname;
+          // _names[ais.mmsi] = ais.shipname;
           _stash(ais.mmsi, 5, ais);
 
         } else if (ais is Type24A) {
-          _names[ais.mmsi] = ais.shipname;
+          // _names[ais.mmsi] = ais.shipname;
           _stash(ais.mmsi, 0x24A, ais);
 
         } else if (ais is Type18) {
@@ -151,7 +151,7 @@ abstract class AISHandler {
         } else if (ais is Type21) {
           // static stuff: buoys, lanbys etc
           _stash(ais.mmsi, 21, ais);
-          _names[ais.mmsi] = ais.name;
+          // _names[ais.mmsi] = ais.name;
 
           PCS them = PCS(ais.lat / 60, ais.lon / 60, 0, 0);
           they(_us, them, ais.mmsi);
