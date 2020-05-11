@@ -119,11 +119,11 @@ abstract class AISHandler {
         final AIS ais = AIS.from(_payload);
 
         if (ais is Type5) {
-          // _names[ais.mmsi] = ais.shipname;
+          nameFor(ais.mmsi, ais.shipname);
           _stash(ais.mmsi, 5, ais);
 
         } else if (ais is Type24A) {
-          // _names[ais.mmsi] = ais.shipname;
+          nameFor(ais.mmsi, ais.shipname);
           _stash(ais.mmsi, 0x24A, ais);
 
         } else if (ais is Type18) {
@@ -150,6 +150,7 @@ abstract class AISHandler {
 
         } else if (ais is Type21) {
           // static stuff: buoys, lanbys etc
+          nameFor(ais.mmsi, ais.name);
           _stash(ais.mmsi, 21, ais);
           // _names[ais.mmsi] = ais.name;
 
@@ -171,4 +172,7 @@ abstract class AISHandler {
       }
     }
   }
+
+  /// Override this method if you want to be advised of name updates.
+  void nameFor(int mmsi, String shipname) {}
 }
