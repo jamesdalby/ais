@@ -1,5 +1,3 @@
-import 'package:flutter/cupertino.dart';
-
 import 'aisdecode.dart';
 import 'cpa.dart';
 import 'package:nmea/nmea.dart';
