@@ -1,6 +1,6 @@
 name: ais
 description: Decode AIS messages
-version: 0.0.6
+version: 0.0.7
 author:
 homepage: https://github.com/jamesdalby/ais
 

@@ -50,6 +50,7 @@ class PCS {
 
   /// Location as [lat,lon] after [time] in hours
   List<double> at(final double time) {
+    if (time == 0) { return [lon,lat]; }
     return [
       lon + _es * time, // es and ns are in (equator) degrees/hour
       lat + _ns * time
