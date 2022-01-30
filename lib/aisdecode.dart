@@ -19,7 +19,7 @@ import 'dart:math';
   d   Data (uninterpreted binary)
   a   Array boundary, numeric suffix is maximum array size. ^ before suffix means preceding fields is the length. Following fields are repeated to end of message
 */
-int _decode(final String s, final int pos) {
+int? _decode(final String s, final int pos) {
   if (s.length <= pos) {
     return null;
   }
@@ -28,20 +28,22 @@ int _decode(final String s, final int pos) {
   return ch;
 }
 
-double _unsignedDouble(final String buf, final int start, final int len, final int scale) {
-  return _unsignedInt(buf, start, len)*pow(10,-scale);
+double? _unsignedDouble(final String buf, final int start, final int len, final int scale) {
+  var u = _unsignedInt(buf, start, len);
+  if (u == null) return null;
+  return u*pow(10,-scale).toDouble();
 }
 
 // extract [len] bits from [buf] starting at position [start]
 // each byte in buf contains 6 bits of data (see _decode)
 // return the resulting bits as an unsigned int
-int _unsignedInt(final String buf, final int start, final int len) {
+int? _unsignedInt(final String buf, final int start, final int len) {
   int ret = 0;
   int s = start;
   int acc = 0;
   for (int n=s; n<start+len; ) {
     int byte = n~/6;
-    int v = _decode(buf, byte);
+    int? v = _decode(buf, byte);
     if (v == null) { return null; }
     int offset = n%6;
     int ll = min(len-acc, 6-offset);
@@ -57,20 +59,22 @@ int _unsignedInt(final String buf, final int start, final int len) {
   return ret;
 }
 
-int _int(final String buf, final int start, final int len) {
-  return _unsignedInt(buf, start,len).toSigned(len);
+int? _int(final String buf, final int start, final int len) {
+  return _unsignedInt(buf, start,len)?.toSigned(len);
 }
 
-double _double(final String buf, final int start, final int len, final int scale) {
-  return _int(buf, start,len)*pow(10, -scale);
+double? _double(final String buf, final int start, final int len, final int scale) {
+  var num = _int(buf, start,len);
+  if (num == null) return null;
+  return num*pow(10, -scale).toDouble();
 }
 
 bool _bool(final String buf, int start) {
   return _unsignedInt(buf, start, 1) == 1;
 }
 
-T _enumeration<T>(final String buf, int start, int len, List<T> values) {
-  int i = _unsignedInt(buf, start,len);
+T? _enumeration<T>(final String buf, int start, int len, List<T> values) {
+  int? i = _unsignedInt(buf, start,len);
   if (i == null || i < 0 || i >= values.length) { return null; }
   return values[i];
 }
@@ -79,7 +83,7 @@ String _text(final String buf, final int start, final int len) {
   // len must be a multiple of 6
   String ret = "";
   for (int i=0; i<len; i+=6) {
-    int v = _unsignedInt(buf, start+i, 6);
+    int? v = _unsignedInt(buf, start+i, 6);
     if (v == null) { break; }
     ret += String.fromCharCode(v<32 ? 64+v : v);
   }
@@ -95,8 +99,8 @@ class AIS {
   AIS._(this.buf, this.pad, this.type);
 
   factory AIS.from(final String s, { final int pad : 0 }) {
-    int type = _unsignedInt(s, 0, 6);
-    if (type == null) return null;
+    int? type = _unsignedInt(s, 0, 6);
+    if (type == null) throw "No message type";
     switch (type) {
       case 1:  return Type1(s, pad);
       case 2:  return Type2(s, pad);  //
@@ -105,13 +109,13 @@ class AIS {
       case 18: return Type18(s, pad); // B
       case 21: return Type21(s, pad); // E
       case 24: {                      // H
-        int partNo = _unsignedInt(s, 38, 2);
+        int? partNo = _unsignedInt(s, 38, 2);
+        if (partNo == null) throw "No partNo in Type24 message";
         return (partNo == 0) ? Type24A(s, pad) : Type24B(s, pad);
       }
       default:
-        print("Unknown message type $type");
+        throw "Unknown message type $type";
     }
-    return null; // throw?
   }
 }
 
@@ -134,26 +138,26 @@ Table 6. Common Navigation Block
 149-167 19 Radio status radio u
 */
 class CNB extends AIS {
-  final int repeat;
-  final int mmsi;
-  final NavigationStatus status;
-  final double turn;
-  final double _sog;
-  final bool accuracy;
-  final double lon;
-  final double lat;
-  final double _course;
-  final int heading;
-  final int _second;
-  final ManeuverIndicator maneuver;
-  final bool raim;
-  final int radio;
+  final int? repeat;
+  final int? mmsi;
+  final NavigationStatus? status;
+  final double? turn;
+  final double? _sog;
+  final bool? accuracy;
+  final double? lon;
+  final double? lat;
+  final double? _course;
+  final int? heading;
+  final int? _second;
+  final ManeuverIndicator? maneuver;
+  final bool? raim;
+  final int? radio;
 
   String get lons => dms(lon, 'E', 'W', 181);
   String get lats => dms(lat, 'N', 'S', 91);
-  int get second => _second >= 60 ? null : _second;
-  double get course => _course == 360.0 ? null : _course;
-  double get sog => _sog == 102.3 ? null : _sog;
+  int? get second => (_second == null || _second! >= 60) ? null : _second;
+  double? get course => _course == 360.0 ? null : _course;
+  double? get sog => _sog == 102.3 ? null : _sog;
 
   CNB(final String buf, final int pad, final int type) :
         repeat = _unsignedInt(buf, 6, 2),
@@ -187,8 +191,8 @@ class CNB extends AIS {
 ///
 /// [dp] is the number of decimal places or minutes to be returned
 ///
-String dms(double v, final String p, final String n, [final double na, final int dp=1]) {
-  if (v == na) { return "n/a"; }
+String dms(double? v, final String p, final String n, [final int dp=1]) {
+  if (v == null) { return "n/a"; }
   String pn = p;
   if (v < 0) {
     v = -v;
@@ -216,23 +220,23 @@ class Type3 extends CNB {
 }
 
 class Type5 extends AIS {
-  final int repeat;
-  final int mmsi;
-  final int aisVersion;
-  final int imo;
-  final String callsign;
-  final String shipname;
-  final String shiptype;
-  final int toBow;
-  final int toStern;
-  final int toPort;
-  final int toStarboard;
-  final String epfd;
-  DateTime get eta => _eta(month, day, hour, minute);
-  final int month, day, hour, minute;
-  final double draught;
-  final String	destination;
-  final bool dte;
+  final int? repeat;
+  final int? mmsi;
+  final int? aisVersion;
+  final int? imo;
+  final String? callsign;
+  final String? shipname;
+  final String? shiptype;
+  final int? toBow;
+  final int? toStern;
+  final int? toPort;
+  final int? toStarboard;
+  final String? epfd;
+  DateTime? get eta => _eta(month, day, hour, minute);
+  final int? month, day, hour, minute;
+  final double? draught;
+  final String?destination;
+  final bool? dte;
 
   Type5(final String buf, int pad) :
         repeat = _unsignedInt(buf, 6,2),
@@ -264,8 +268,9 @@ class Type5 extends AIS {
   draught: $draught, destination: $destination, dte: $dte
   }''';
 
-  DateTime _eta(int month, int day, int hour, int minute) {
+  DateTime? _eta(int? month, int? day, int? hour, int? minute) {
     DateTime now = DateTime.now();
+    if ( month == null || day ==null || hour == null || minute == null) return null;
     DateTime ret = DateTime.utc(now.year, month, day, hour, minute);
     if (ret.compareTo(now) < 0) {
       ret = DateTime.utc(now.year+1, month, day, hour, minute);
@@ -275,16 +280,16 @@ class Type5 extends AIS {
 }
 
 class Type18 extends AIS {
-  final int repeat;
-  final int mmsi;
-  final double _speed; // sog in CNB
+  final int? repeat;
+  final int? mmsi;
+  final double? _speed; // sog in CNB
   final bool accuracy;
-  final double lon;
-  final double lat;
-  final double _course;
-  final int heading;
-  final int _second;
-  final int regional;
+  final double? lon;
+  final double? lat;
+  final double? _course;
+  final int? heading;
+  final int? _second;
+  final int? regional;
   final bool cs;
   final bool display;
   final bool dsc;
@@ -292,7 +297,7 @@ class Type18 extends AIS {
   final bool msg22;
   final bool assigned;
   final bool raim;
-  final int radio;
+  final int? radio;
 
   Type18(final String buf, final int pad) :
         repeat = _unsignedInt(buf, 6, 2),
@@ -317,9 +322,9 @@ class Type18 extends AIS {
 
   String get lons => dms(lon, 'E', 'W', 181);
   String get lats => dms(lat, 'N', 'S', 91);
-  int get second => _second >= 60 ? null : _second;
-  double get course => _course == 360.0 ? null : _course;
-  double get speed => _speed == 102.3 ? null : _speed;
+  int? get second => _second  == null || _second! >= 60 ? null : _second;
+  double? get course => _course == 360.0 ? null : _course;
+  double? get speed => _speed == 102.3 ? null : _speed;
 
   @override
   String toString() {
@@ -328,18 +333,18 @@ class Type18 extends AIS {
 }
 
 class Type21 extends AIS {
-  final int repeat;
-  final int mmsi;
-  final String aidType;
-  final String name;
+  final int? repeat;
+  final int? mmsi;
+  final String? aidType;
+  final String? name;
   final bool accuracy;
-  final double lon;
-  final double lat;
-  final int toBow, toStern, toPort, toStarboard;
-  final String epfd;
-  final int second;
+  final double? lon;
+  final double? lat;
+  final int? toBow, toStern, toPort, toStarboard;
+  final String? epfd;
+  final int? second;
   final bool offPosition;
-  final int regional;
+  final int? regional;
   final bool raim;
   final bool virtualAid;
   final bool assigned;
@@ -384,10 +389,10 @@ class Type21 extends AIS {
 }
 
 class Type24A extends AIS {
-  final int repeat;
-  final int mmsi;
-  final int partno = 0;
-  final String shipname;
+  final int? repeat;
+  final int? mmsi;
+  final int? partno = 0;
+  final String? shipname;
   Type24A(final String buf, final int pad) :
         repeat = _unsignedInt(buf, 6, 2),
         mmsi = _unsignedInt(buf, 8, 30),
@@ -401,17 +406,17 @@ class Type24A extends AIS {
 }
 
 class Type24B extends AIS {
-  final int repeat;
-  final int mmsi;
-  final int partno = 1;
+  final int? repeat;
+  final int? mmsi;
+  final int? partno = 1;
 
-  final String shiptype;
-  final String vendorid;
-  final int model;
-  final int serial;
-  final String callsign;
-  final int toBow, toStern, toPort, toStarboard;
-  final int mothershipMMSI;
+  final String? shiptype;
+  final String? vendorid;
+  final int? model;
+  final int? serial;
+  final String? callsign;
+  final int? toBow, toStern, toPort, toStarboard;
+  final int? mothershipMMSI;
 
   Type24B(final String buf, final int pad) :
         repeat = _unsignedInt(buf, 6, 2),

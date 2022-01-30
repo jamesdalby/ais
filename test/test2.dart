@@ -22,7 +22,7 @@ class AISTest extends AISHandler {
     /*double t = tcpa(us, them);
     double c = cpa(us, them, t);*/
     String ship = mmsi.toString(); // name(mmsi);
-    if (ship == null || _seen.contains(ship)) return;
+    if (_seen.contains(ship)) return;
     _seen.add(ship);
     print("$ship");
   }

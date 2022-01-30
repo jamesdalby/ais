@@ -17,10 +17,8 @@ import 'package:nmea/nmea.dart';
 /// This class maintains a (non-persistent) cache of the most recent message of each type received, keyed by MMSI
 /// useful for doing things like name lookup and drilldown to full AIS data should you need to.
 abstract class AISHandler {
-  String _lastMsg;
+  String? _lastMsg;
   String _payload = '';
-  /*final String host;
-  final int port;*/
 
   final NMEAReader _nmea;
 
@@ -58,7 +56,7 @@ abstract class AISHandler {
   void they(final PCS us, final PCS them, final int mmsi);
 
   // most recently received position
-  PCS _us;
+  PCS? _us;
 
   // Map of MMSI to ship name
   // Map<int,String> _names = {};
@@ -81,22 +79,27 @@ abstract class AISHandler {
   /// Most recent message of given [type] from [mmsi]
   ///
   /// If no message has been received, or this MMSI is unknown, then returns null
-  AIS getMostRecentMessage(final int mmsi, final int msgType) => _static[mmsi]??[msgType];
+  AIS? getMostRecentMessage(final int mmsi, final int msgType) => _static[mmsi]?[msgType];
 
   // Most recent messages of each type for given mmsi
-  Map<int, AIS> getMostRecentMessages(final int mmsi) => Map.unmodifiable(_static[mmsi]);
+  Map<int, AIS>? getMostRecentMessages(final int mmsi) {
+    var m = _static[mmsi];
+    return m == null ? null : Map.unmodifiable(m);
+  }
 
   // stash the message by MMSI and Type
-  void _stash(final int mmsi, final int type, final AIS ais) {
+  void _stash(final int? mmsi, final int type, final AIS ais) {
+    if (mmsi==null) return;
+
     _static.putIfAbsent(mmsi, ()=>new Map<int,AIS>())[type] = ais;
   }
 
   // receiver for NMEA messges
   void _handleNMEA(var msg) {
     if (msg is RMC) {
-      _us = new PCS(msg.position.lat, msg.position.lng, msg.trackMadeGood, msg.sog);
+      _us = PCS(msg.position.lat, msg.position.lng, msg.trackMadeGood, msg.sog);
       // print('   '+_us.toString());
-      we(_us);
+      we(_us!);
     }
     if (msg is Pos) {
       // Consider caching pos & course & speed,and then invoking us on these?  RMC is probably the exact same thing, I suspect.
@@ -127,9 +130,9 @@ abstract class AISHandler {
         } else if (ais is Type18) {
           _stash(ais.mmsi, 0x18, ais);
           if (_us != null) {
-            if (ais.course != null) {
-              PCS them = PCS(ais.lat / 60, ais.lon / 60, ais.course, ais.speed);
-              they(_us, them, ais.mmsi);
+            if (ais.course != null && ais.lat != null && ais.lon != null) {
+              PCS them = PCS(ais.lat! / 60, ais.lon! / 60, ais.course, ais.speed);
+              they(_us!, them, ais.mmsi??0);
             }
           }
 
@@ -137,9 +140,9 @@ abstract class AISHandler {
           _stash(ais.mmsi, ais.type, ais);
           // Type 1, 2, 3 extend CNB:
           if (_us != null) {
-            if (ais.course != null) {
-              PCS them = PCS(ais.lat / 60, ais.lon / 60, ais.course, ais.sog);
-              they(_us, them, ais.mmsi);
+            if (ais.course != null && ais.lat != null && ais.lon != null) {
+              PCS them = PCS(ais.lat! / 60, ais.lon! / 60, ais.course, ais.sog);
+              they(_us!, them, ais.mmsi??0);
             }
           }
         } else if (ais is Type24B) {
@@ -151,9 +154,12 @@ abstract class AISHandler {
           nameFor(ais.mmsi, ais.name);
           _stash(ais.mmsi, 21, ais);
           // _names[ais.mmsi] = ais.name;
-
-          PCS them = PCS(ais.lat / 60, ais.lon / 60, 0, 0);
-          they(_us, them, ais.mmsi);
+          if (_us != null) {
+            if (ais.lat != null && ais.lon != null) {
+              PCS them = PCS(ais.lat! / 60, ais.lon! / 60, 0, 0);
+              they(_us!, them, ais.mmsi ?? 0);
+            }
+          }
 
         } else {
           // print("not handled: $ais");
@@ -172,5 +178,5 @@ abstract class AISHandler {
   }
 
   /// Override this method if you want to be advised of name updates.
-  void nameFor(int mmsi, String shipname) {}
+  void nameFor(int? mmsi, String? shipname) {}
 }

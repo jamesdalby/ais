@@ -15,14 +15,14 @@ class AISTest extends AISHandler {
   void we(PCS us) {}
 
   void they(PCS us, PCS them, int mmsi) {
-    double t = tcpa(us, them);
-    double c = cpa(us, them, t);
+    double? t = tcpa(us, them);
+    double? c = cpa(us, them, t);
     String ship = mmsi.toString();
     print(
         "$us -> $them\t"
             "$ship"
-            " ${(t*60).toStringAsFixed(1)}mins"
-            " ${c.toStringAsFixed(1)}nm"
+            " ${(t!*60).toStringAsFixed(1)}mins"
+            " ${c?.toStringAsFixed(1)}nm"
     );
   }
 }
