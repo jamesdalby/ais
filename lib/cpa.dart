@@ -76,7 +76,7 @@ class PCS {
   }
 
   // distance from us to them in nm
-  double? distanceTo(final PCS them) {
+  double distanceTo(final PCS them) {
     return distance(this, them);
   }
 }
@@ -106,8 +106,7 @@ double tcpa(final PCS us, final PCS them) {
 /// If [time] given, this just computes distance at [time]
 /// but if it's null it'll compute tcpa(us,them) and use that time
 ///
-/// If our COG is null, this returns null
-double? cpa(final PCS us, final PCS them, [double? time]) {
+double cpa(final PCS us, final PCS them, [double? time]) {
   return distance(us, them, time ?? tcpa(us, them));
 }
 
