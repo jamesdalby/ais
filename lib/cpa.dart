@@ -4,23 +4,25 @@ import 'aisdecode.dart';
 import 'geom.dart';
 
 /// Representation of Position, Course & Speed
+/// There is no null capability here; it's up to you to decide whether a PCS is legitimate or not.
+/// why? because it just got too messy to do null checks everywhere.
 ///
 /// This is used as parameters to the tcpa&cpa functions herein.
 class PCS {
   /// latitude, degrees
-  final double? lat;
+  final double lat;
 
   /// longitude, degrees
-  final double? lon;
+  final double lon;
 
   // Lat & Long in nice format
-  String? get latLon => _latLon();
+  String get latLon => _latLon();
 
   /// course over the ground, degrees from North
-  final double? cog;
+  final double cog;
 
   /// speed over the ground, knots
-  final double? sog;
+  final double sog;
 
   double _ns;
 
@@ -40,44 +42,37 @@ class PCS {
   ///
   /// [sog] speed over the ground, kn
   PCS(this.lat, this.lon, this.cog, this.sog) : _es = 0, _ns = 0 {
-    if (cog != null && sog != null && lat != null) {
-      _ns = sog! / 60 * cos(_deg2rad(cog));
-      _es = sog! / 60 * sin(_deg2rad(cog)) / cos(_deg2rad(lat)).abs();
-    }
+    _ns = sog / 60 * cos(_deg2rad(cog));
+    _es = sog / 60 * sin(_deg2rad(cog)) / cos(_deg2rad(lat)).abs();
+
   }
 
   /// Location as [lat,lon] after [time] in hours
-  List<double>? at(final double time) {
-    if (lat==null || lon==null) return null;
-    if (time == 0) { return [lon!,lat!]; }
+  List<double> at(final double time) {
     return [
-      lon! + _es * time, // es and ns are in (equator) degrees/hour
-      lat! + _ns * time
+      lon + _es * time, // es and ns are in (equator) degrees/hour
+      lat + _ns * time
     ];
   }
 
   static double _deg2rad(v) => v == null ? null : (v * pi / 180);
 
-  String? _latLon() {
+  String _latLon() {
     // dms accepts minutes, so *60
-    if (lat == null || lon == null) {
-      return null;
-    }
-    return "${dms(lat! * 60, 'N', 'S')} ${dms(lon! * 60, 'E', 'W')}";
+    return "${dms(lat * 60, 'N', 'S')} ${dms(lon * 60, 'E', 'W')}";
   }
 
   @override String toString() {
-    String ll = _latLon() ?? 'NoPos';
-    if (cog != null) ll += " ${cog!.toInt()}°";
-    if (sog != null) ll += " ${sog!.toStringAsFixed(1)}kn";
+    String ll = _latLon();
+    ll += " ${cog.toInt()}°";
+    ll += " ${sog.toStringAsFixed(1)}kn";
 
     return ll;
   }
 
   /// bearing in degrees from North to them
-  double? bearingTo(final PCS them) {
-    if (lat == null  || lon == null || them.lat == null || them.lon == null) return null;
-    return bearing(lat!, lon!, them.lat!, them.lon!);
+  double bearingTo(final PCS them) {
+    return bearing(lat, lon, them.lat, them.lon);
   }
 
   // distance from us to them in nm
@@ -99,14 +94,11 @@ double _dotProduct(List<double> a, List<double> b) {
 /// Parallel courses will return NaN
 ///
 /// If our COG is null, this returns null.
-double? tcpa(final PCS us, final PCS them) {
-  if (us.cog == null) { return null; }
-  if (us.lon==null || us.lat==null) return null;
-  if (them.lon==null || them.lat==null) return null;
+double tcpa(final PCS us, final PCS them) {
   var dv = [ us.es - them.es, us.ns - them.ns];
   double dv2 = _dotProduct(dv, dv);
   if (dv2 == 0) { return 0; }
-  return -_dotProduct([ us.lon! - them.lon!, us.lat! - them.lat!], dv) / dv2;
+  return -_dotProduct([ us.lon - them.lon, us.lat - them.lat], dv) / dv2;
 }
 
 /// Closest point of approach in nm between [us] and [them]
@@ -122,13 +114,9 @@ double? cpa(final PCS us, final PCS them, [double? time]) {
 /// Distance in nm between [us] & [them], [time] hours in the future.
 ///
 /// If our COG is null, then this returns null
-double? distance(final PCS us, final PCS them, [final double? time = 0]) {
-  if (us.cog == null || time == null) {
-    return null;
-  }
-  List<double>? ut = us.at(time);
-  List<double>? tt = them.at(time);
-  if (ut == null || tt == null) return null;
+double distance(final PCS us, final PCS them, [final double time = 0]) {
+  List<double> ut = us.at(time);
+  List<double> tt = them.at(time);
 
   var dx = ut[0] - tt[0];
   var dy = ut[1] - tt[1];
