@@ -21,8 +21,8 @@ class AISTest extends AISHandler {
     print(
         "$us -> $them\t"
             "$ship"
-            " ${(t!*60).toStringAsFixed(1)}mins"
-            " ${c?.toStringAsFixed(1)}nm"
+            " ${(t*60).toStringAsFixed(1)}mins"
+            " ${c.toStringAsFixed(1)}nm"
     );
   }
 }

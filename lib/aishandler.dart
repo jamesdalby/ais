@@ -131,8 +131,8 @@ abstract class AISHandler {
           _stash(ais.mmsi, 0x18, ais);
           if (_us != null) {
             if (ais.course != null && ais.lat != null && ais.lon != null) {
-              PCS them = PCS(ais.lat! / 60, ais.lon! / 60, ais.course, ais.speed);
-              they(_us!, them, ais.mmsi??0);
+              PCS them = PCS(ais.lat / 60, ais.lon / 60, ais.course, ais.speed);
+              they(_us!, them, ais.mmsi);
             }
           }
 
@@ -141,8 +141,8 @@ abstract class AISHandler {
           // Type 1, 2, 3 extend CNB:
           if (_us != null) {
             if (ais.course != null && ais.lat != null && ais.lon != null) {
-              PCS them = PCS(ais.lat! / 60, ais.lon! / 60, ais.course, ais.sog);
-              they(_us!, them, ais.mmsi??0);
+              PCS them = PCS(ais.lat / 60, ais.lon / 60, ais.course, ais.sog);
+              they(_us!, them, ais.mmsi);
             }
           }
         } else if (ais is Type24B) {
@@ -156,8 +156,8 @@ abstract class AISHandler {
           // _names[ais.mmsi] = ais.name;
           if (_us != null) {
             if (ais.lat != null && ais.lon != null) {
-              PCS them = PCS(ais.lat! / 60, ais.lon! / 60, 0, 0);
-              they(_us!, them, ais.mmsi ?? 0);
+              PCS them = PCS(ais.lat / 60, ais.lon / 60, 0, 0);
+              they(_us!, them, ais.mmsi);
             }
           }
 
