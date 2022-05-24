@@ -12,6 +12,7 @@ dependencies:
   nmea:
     git:
       url: https://github.com/jamesdalby/nmea.git
+      ref: master
 
 dev_dependencies:
   flutter_test:
