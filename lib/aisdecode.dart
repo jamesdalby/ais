@@ -92,7 +92,7 @@ class AIS {
 
   AIS._(this.buf, this.pad, this.type);
 
-  factory AIS.from(final String s, { final int pad : 0 }) {
+  factory AIS.from(final String s, { final int pad = 0 }) {
     int type = _unsignedInt(s, 0, 6);
     switch (type) {
       case 1:  return Type1(s, pad);
@@ -183,7 +183,10 @@ class CNB extends AIS {
 ///
 /// [dp] is the number of decimal places or minutes to be returned
 ///
-String dms(double v, final String p, final String n, [final int dp=1]) {
+String dms(double v, final String p, final String n, [final int? na]) {
+  if (v.toInt() == na) {
+    return "n/a";
+  }
   String pn = p;
   if (v < 0) {
     v = -v;
@@ -192,7 +195,7 @@ String dms(double v, final String p, final String n, [final int dp=1]) {
   int d = v ~/ 60;
   double m = v - d*60;
 
-  return "$d°${m.toStringAsFixed(dp)}$pn";
+  return "$d°${m.toStringAsFixed(1)}$pn";
 }
 
 class Type1 extends CNB {
@@ -344,10 +347,10 @@ class Type21 extends AIS {
         repeat = _unsignedInt(buf, 6, 2),
         mmsi = _unsignedInt(buf, 8, 30),
         aidType = _enumeration(buf, 38, 5, AidType),
-        name = _getName(buf),
+        name = _getName(buf, pad),
         accuracy = _bool(buf, 163),
-        lon = _double(buf, 164, 28, 4),
-        lat = _double(buf, 192, 27, 4),
+        lon = _double(buf, 164, 28, 4), // see cmb - this is in minutes
+        lat = _double(buf, 192, 27, 4), //
         toBow = _unsignedInt(buf, 219, 9),
         toStern = _unsignedInt(buf, 228, 9),
         toPort = _unsignedInt(buf, 237, 9),
@@ -361,23 +364,28 @@ class Type21 extends AIS {
         assigned = _bool(buf, 270),
         super._(buf, pad, 21);
 
-  static String _getName(final String buf)
+  static String _getName(final String buf, final int pad)
   {
     String n = _text(buf, 43, 120);
     if (n.length == 20) {
-      n = n + _text(buf, 272, 88);
+      n = n + _text(buf, 272, min(88, buf.length*6-pad-272));
     }
     return n;
   }
 
   @override
   String toString() {
-    return 'Type21{repeat: $repeat, mmsi: $mmsi, aidType: $aidType, name: $name, accuracy: $accuracy, lon: $lon, lat: $lat, to_bow: $toBow, to_stern: $toStern, to_port: $toPort, to_starboard: $toStarboard, epfd: $epfd, second: $second, offPosition: $offPosition, regional: $regional, raim: $raim, virtualAid: $virtualAid, assigned: $assigned}';
+    return 'Type21{repeat: $repeat, mmsi: $mmsi, aidType: $aidType, name: $name, accuracy: $accuracy, lat: ${dms(lat, 'N','S')}, lon: ${dms(lon, 'E', 'W')}, to_bow: $toBow, to_stern: $toStern, to_port: $toPort, to_starboard: $toStarboard, epfd: $epfd, second: $second, offPosition: $offPosition, regional: $regional, raim: $raim, virtualAid: $virtualAid, assigned: $assigned}';
   }
 
+  static void test() {
+    print(AIS.from(r'EvjHCtAb94PV@Fh6Pa1T;WWR@1:gteOs>T43010888000?', pad: 4));
+  }
 
 }
-
+main() {
+  Type21.test();
+}
 class Type24A extends AIS {
   final int repeat;
   final int mmsi;

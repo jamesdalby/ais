@@ -37,10 +37,8 @@ abstract class AISHandler {
 
     /// Change the host and port number; will disconnect and reconnect to a new source.
     void setSource(final String host, final int port) {
-      if (_nmea is NMEASocketReader) {
-        (_nmea as NMEASocketReader).hostname = host;
-        (_nmea as NMEASocketReader).port = port;
-      }
+        _nmea.hostname = host;
+        _nmea.port = port;
     }
 
     // The underlying NMEA reader
@@ -133,20 +131,16 @@ abstract class AISHandler {
           } else if (ais is Type18) {
             _stash(ais.mmsi, 0x18, ais);
             if (_us != null) {
-              if (ais.course != null && ais.lat != null && ais.lon != null) {
-                PCS them = PCS(ais.lat / 60, ais.lon / 60, ais.course, ais.speed);
-                they(_us!, them, ais.mmsi);
-              }
+              PCS them = PCS(ais.lat / 60, ais.lon / 60, ais.course, ais.speed);
+              they(_us!, them, ais.mmsi);
             }
 
           } else if (ais is CNB) {
             _stash(ais.mmsi, ais.type, ais);
             // Type 1, 2, 3 extend CNB:
             if (_us != null) {
-              if (ais.course != null && ais.lat != null && ais.lon != null) {
-                PCS them = PCS(ais.lat / 60, ais.lon / 60, ais.course, ais.sog);
-                they(_us!, them, ais.mmsi);
-              }
+              PCS them = PCS(ais.lat / 60, ais.lon / 60, ais.course, ais.sog);
+              they(_us!, them, ais.mmsi);
             }
           } else if (ais is Type24B) {
             _stash(ais.mmsi, 0x24B, ais);
@@ -158,10 +152,8 @@ abstract class AISHandler {
             _stash(ais.mmsi, 21, ais);
             // _names[ais.mmsi] = ais.name;
             if (_us != null) {
-              if (ais.lat != null && ais.lon != null) {
-                PCS them = PCS(ais.lat / 60, ais.lon / 60, 0, 0);
-                they(_us!, them, ais.mmsi);
-              }
+              PCS them = PCS(ais.lat / 60, ais.lon / 60, 0, 0);
+              they(_us!, them, ais.mmsi);
             }
 
           } else {
