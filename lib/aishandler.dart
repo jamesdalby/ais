@@ -118,7 +118,7 @@ abstract class AISHandler {
         _payload += msg.payload;
         if (msg.fragment == msg.fragments) {
           // this is the last message in the chain
-          final AIS ais = AIS.from(_payload);
+          final AIS ais = AIS.from(_payload, pad: msg.pad);
 
           if (ais is Type5) {
             nameFor(ais.mmsi, ais.shipname);
