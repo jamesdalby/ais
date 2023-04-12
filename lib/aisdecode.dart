@@ -377,15 +377,8 @@ class Type21 extends AIS {
   String toString() {
     return 'Type21{repeat: $repeat, mmsi: $mmsi, aidType: $aidType, name: $name, accuracy: $accuracy, lat: ${dms(lat, 'N','S')}, lon: ${dms(lon, 'E', 'W')}, to_bow: $toBow, to_stern: $toStern, to_port: $toPort, to_starboard: $toStarboard, epfd: $epfd, second: $second, offPosition: $offPosition, regional: $regional, raim: $raim, virtualAid: $virtualAid, assigned: $assigned}';
   }
-
-  static void test() {
-    print(AIS.from(r'EvjHCtAb94PV@Fh6Pa1T;WWR@1:gteOs>T43010888000?', pad: 4));
-  }
-
 }
-main() {
-  Type21.test();
-}
+
 class Type24A extends AIS {
   final int repeat;
   final int mmsi;
